@@ -26,6 +26,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/gpl.html>.
 #ce
 
+#include <WinAPIConstants.au3>
 #include <WinAPIGDI.au3>
 #include <WinAPISys.au3>
 #include <WinAPIMisc.au3>
@@ -126,7 +127,7 @@ Global Enum $GM_TRAINING, $GM_CHEESE, $GM_FOUR, $GM_PC, $GM_MASTER, $GM_TOTAL
 Global $GAMEMODE   = 0
 Global $Gravity    = 0
 Global $Stickyness = 0
-Global $PCLeftover = 7
+Global $PCBagNum = 1
 
 Global $Damage	= 0 ;damage sent
 Global $Lines	= 0 ;lines cleared
@@ -268,7 +269,7 @@ SoundSetWaveVolume($VOLUME)
 #Region KEYBINDS
 ;key-code, action to perform, key pressed?, time of the last press/release, raising edge?
 Global Enum $KEYCODE, $KEYACTION, $KEYSTATE, $KEYTIME, $KEYEDGE
-Global		$KEYBINDS[21][5]
+Global		$KEYBINDS[23][5]
 Global		$HOTKEYS [ 6][2]
 
 ;edge
@@ -295,6 +296,8 @@ $KEYBINDS[17][4] = 1
 $KEYBINDS[18][4] = 1
 $KEYBINDS[19][4] = 1
 $KEYBINDS[20][4] = 1
+$KEYBINDS[21][4] = 1
+$KEYBINDS[22][4] = 1
 
 ;functions
 $KEYBINDS[0 ][1] = 'MoveL()'
@@ -320,6 +323,8 @@ $KEYBINDS[17][1] = 'PCSetLeftover(4)'
 $KEYBINDS[18][1] = 'PCSetLeftover(5)'
 $KEYBINDS[19][1] = 'PCSetLeftover(6)'
 $KEYBINDS[20][1] = 'PCSetLeftover(7)'
+$KEYBINDS[21][1] = 'PCSetLeftover(8)'
+$KEYBINDS[22][1] = 'PCSetLeftover(9)'
 
 $HOTKEYS [0 ][1] = 'Undo'
 $HOTKEYS [1 ][1] = 'Redo'
@@ -352,6 +357,8 @@ $KEYBINDS[17][0] = 52 ;4
 $KEYBINDS[18][0] = 53 ;5
 $KEYBINDS[19][0] = 54 ;6
 $KEYBINDS[20][0] = 55 ;7
+$KEYBINDS[21][0] = 56 ;8
+$KEYBINDS[22][0] = 57 ;9
 
 $HOTKEYS [0 ][0] = '^z'
 $HOTKEYS [1 ][0] = '^+z'
@@ -2777,39 +2784,64 @@ Func BagReseed()
 	$BagSeed = Random(0, 65535, 1)
 EndFunc
 
-
-Func PCSetLeftover($Leftover)
+Func PiecesLeftover($BagNum)
+    Return Mod(66-1 - 3*$BagNum, 7)+1 ;to make 1st bag return 7
+EndFunc
+Func PCSetLeftover($BagNum) 
 	If $GAMEMODE <> $GM_PC Then Return
 
-	Local $PCSizes[7] = [7,4,1,5,2,6,3]
 	Local $Comment
-
-	$PCLeftover = $PCSizes[$Leftover-1]
-	Switch $Leftover
+    
+    $PCBagNum = $BagNum ;push to global
+	Local $PCLeftover = PiecesLeftover($BagNum)
+	Switch $PCBagNum
 		Case 1
-			$Comment = '1st'
+			$CommentOrdinal = 'st'
 		Case 2
-			$Comment = '2nd'
+			$CommentOrdinal = 'nd'
 		Case 3
-			$Comment = '3rd'
+			$CommentOrdinal = 'rd'
 		Case Else
-			$Comment = $Leftover&'th.'
+			$CommentOrdinal = 'th'
 	EndSwitch
 
-	DrawComment(0, 1000, $Comment&' PC', 'Bag leftover: '&$PCLeftover&' piece' & (($PCLeftover = 1)?'.':'s.'))
-	clear_board()
+	DrawComment(0, 1000, $PCBagNum&$CommentOrdinal&' PC', 'Bag leftover: '&$PCLeftover&' piece' & (($PCLeftover <> 1)?'s':'') & '.')
+	clear_board() ;implicitly calls PCSetBag
 EndFunc
-Func PCSetBag($Leftover)
-	Local $Fill
-
-	Do
-		$Fill = __MemCopy($BagPieces)
-		For $i = 0 To UBound($Fill) - 1
-			__Swap($Fill[$i], $Fill[Random($i, UBound($Fill) - 1, 1)])
-		Next
-		ReDim $Fill[$Leftover]
-	Until Not PCRerollBag($Fill)
-
+Func PCShufflePieces($Bag, $PieceCount)
+    Do
+        $TempBag = __MemCopy($Bag)
+        Local $Fill[$PieceCount]
+        For $i = 0 To $PieceCount - 1
+            $index = Random(0, UBound($TempBag) - 1,1)
+            $Fill[$i] = $TempBag[$index]
+            _ArrayDelete($TempBag, $index)
+        Next
+    Until Not PCRerollBag($Fill)
+    return $Fill
+EndFunc
+Func PCSetBag()
+	Local $Fill[1] ;a bit clumsy, forcing this as 1, but eh
+    
+    If ($PCBagNum <= 7) Then ;handle normal
+        $Fill = PCShufflePieces($BagPieces, PiecesLeftover($PCBagNum))
+    ElseIf ($PCBagNum = 8) Then ;8th, remove one, duplicate one
+        Local $ExcludeBag = __MemCopy($Bag)
+        $index = Random(0, UBound($BagPieces) - 1,1)
+        _ArrayDelete($ExcludeBag, $index)
+        ;_ArrayDisplay($ExcludeBag)
+        $Fill[0] = $ExcludeBag[Random(0, UBound($ExcludeBag) - 1,1)]
+        ;_ArrayDisplay($Fill)
+        _ArrayConcatenate($Fill, PCShufflePieces($ExcludeBag, PiecesLeftover($PCBagNum)-1))
+        ;_ArrayDisplay($Fill)
+    ElseIf ($PCBagNum = 9) Then ;9th, T, T, [JL]p1, [IOSZ]p1
+        Local $PartJL = [1,5]
+        Local $PartISOZ = [0,2,3,4]
+        Local $PartNewBag = [6, $PartISOZ[Random(0, UBound($PartISOZ) - 1,1)], $PartJL[Random(0, UBound($PartJL) - 1,1)]]
+        $Fill[0] = 6
+        _ArrayConcatenate($Fill, PCShufflePieces($PartNewBag, 3))
+    EndIf
+    
 	$Bag = $Fill
 	$CHG = True
 
@@ -3167,7 +3199,7 @@ Func clear_board()
 			GridSpawn4W()
 		Case $GM_MASTER		;master mode
 		Case $GM_PC			;pc training
-			PCSetBag($PCLeftover)
+			PCSetBag()
 	EndSwitch
 EndFunc   ;==>clear_board
 Func lose_game()
