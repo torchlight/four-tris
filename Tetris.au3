@@ -1189,7 +1189,7 @@ Func SetMode($Mode)
 			$BUTTONTEXT[$MODEBUTTON] = ' MASTER   MODE  '
 			$Gravity = 1000
 		Case $GM_PC ;perfect-clear mode
-			DrawComment(0, 1750, 'PC MODE', 'Use KEYS 1-7 to set the Nth. PC.')
+			DrawComment(0, 1750, 'PC MODE', 'Use KEYS 1-9 to set the Nth. PC.')
 			$BUTTONTEXT[$MODEBUTTON] = '   PC     MODE  '
 			$Gravity = 0
 	EndSwitch
