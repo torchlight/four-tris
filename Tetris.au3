@@ -127,7 +127,7 @@ Global Enum $GM_TRAINING, $GM_CHEESE, $GM_FOUR, $GM_PC, $GM_MASTER, $GM_TOTAL
 Global $GAMEMODE   = 0
 Global $Gravity    = 0
 Global $Stickyness = 0
-Global $PCLeftover = 7
+Global $PCBagNum = 1
 
 Global $Damage	= 0 ;damage sent
 Global $Lines	= 0 ;lines cleared
@@ -271,7 +271,7 @@ SoundSetWaveVolume($VOLUME)
 ;key-code, action to perform, key pressed?, time of the last press/release, raising edge?
 Global Enum $KEYCODE, $KEYACTION, $KEYSTATE, $KEYTIME, $KEYEDGE
 Global		$KEYBINDS[21][5]
-Global		$HOTKEYS [ 6][2]
+Global		$HOTKEYS [13][2]
 
 ;edge
 $KEYBINDS[0 ][4] = 0
@@ -315,13 +315,13 @@ $KEYBINDS[11][1] = 'GridSpawn4W()'
 $KEYBINDS[12][1] = 'HighlightReset()'
 $KEYBINDS[13][1] = 'HighlightModeToggle()'
 
-$KEYBINDS[14][1] = 'PCSetLeftover(1)'
-$KEYBINDS[15][1] = 'PCSetLeftover(2)'
-$KEYBINDS[16][1] = 'PCSetLeftover(3)'
-$KEYBINDS[17][1] = 'PCSetLeftover(4)'
-$KEYBINDS[18][1] = 'PCSetLeftover(5)'
-$KEYBINDS[19][1] = 'PCSetLeftover(6)'
-$KEYBINDS[20][1] = 'PCSetLeftover(7)'
+$KEYBINDS[14][1] = 'PCSetBagNum(1)'
+$KEYBINDS[15][1] = 'PCSetBagNum(2)'
+$KEYBINDS[16][1] = 'PCSetBagNum(3)'
+$KEYBINDS[17][1] = 'PCSetBagNum(4)'
+$KEYBINDS[18][1] = 'PCSetBagNum(5)'
+$KEYBINDS[19][1] = 'PCSetBagNum(6)'
+$KEYBINDS[20][1] = 'PCSetBagNum(7)'
 
 $HOTKEYS [0 ][1] = 'Undo'
 $HOTKEYS [1 ][1] = 'Redo'
@@ -329,6 +329,13 @@ $HOTKEYS [2 ][1] = 'Redo'
 $HOTKEYS [3 ][1] = 'Copy'
 $HOTKEYS [4 ][1] = 'Paste'
 $HOTKEYS [5 ][1] = 'BagSet'
+$HOTKEYS [6 ][1] = 'PCSetBagNumDupe1'
+$HOTKEYS [7 ][1] = 'PCSetBagNumDupe2'
+$HOTKEYS [8 ][1] = 'PCSetBagNumDupe3'
+$HOTKEYS [9 ][1] = 'PCSetBagNumDupe4'
+$HOTKEYS [10][1] = 'PCSetBagNumDupe5'
+$HOTKEYS [11][1] = 'PCSetBagNumDupe6'
+$HOTKEYS [12][1] = 'PCSetBagNumDupe7'
 
 ;keybind
 $KEYBINDS[0 ][0] = Number(IniRead('settings.ini', 'SETTINGS', 'KB0',  37)) ;LEFT
@@ -361,6 +368,13 @@ $HOTKEYS [2 ][0] = '^y'
 $HOTKEYS [3 ][0] = '^c'
 $HOTKEYS [4 ][0] = '^v'
 $HOTKEYS [5 ][0] = '^q'
+$HOTKEYS [6 ][0] = '^1'
+$HOTKEYS [7 ][0] = '^2'
+$HOTKEYS [8 ][0] = '^3'
+$HOTKEYS [9 ][0] = '^4'
+$HOTKEYS [10][0] = '^5'
+$HOTKEYS [11][0] = '^6'
+$HOTKEYS [12][0] = '^7'
 
 Global $KEYACTIVE = False
 
@@ -1192,7 +1206,7 @@ Func SetMode($Mode)
 			$BUTTONTEXT[$MODEBUTTON] = ' MASTER   MODE  '
 			$Gravity = 1000
 		Case $GM_PC ;perfect-clear mode
-			DrawComment(0, 1750, 'PC MODE', 'Use KEYS 1-7 to set the Nth. PC.')
+			DrawComment(0, 1750, 'PC MODE', 'KEYS 1-7 for Nth. PC, +CTRL for dupes.') ;still too long with ellipsis
 			$BUTTONTEXT[$MODEBUTTON] = '   PC     MODE  '
 			$Gravity = 0
 	EndSwitch
@@ -2797,39 +2811,74 @@ Func BagReseed()
 	$BagSeed = BitAND($BagSeed*123456789 + 1, 0x7fffffff)
 EndFunc
 
-
-Func PCSetLeftover($Leftover)
+Func PiecesLeftover($BagNum)
+    Return Mod(66-1 - 3*$BagNum, 7)+1 ;to make 1st bag return 7
+EndFunc
+Func PCSetBagNumDupe1() ;you can't have functions with parameters for hotkeys :(
+    SetHotkeys(1)
+    PCSetBagNum(7+1)
+EndFunc
+Func PCSetBagNumDupe2()
+    PCSetBagNum(7+2)
+EndFunc
+Func PCSetBagNumDupe3() ;technically does not exist
+    PCSetBagNum(7+3)
+EndFunc
+Func PCSetBagNumDupe4()
+    PCSetBagNum(7+4)
+EndFunc
+Func PCSetBagNumDupe5()
+    PCSetBagNum(7+5)
+EndFunc
+Func PCSetBagNumDupe6()
+    PCSetBagNum(7+6)
+EndFunc
+Func PCSetBagNumDupe7()
+    PCSetBagNum(7+7)
+EndFunc
+Func PCSetBagNum($BagNum) 
 	If $GAMEMODE <> $GM_PC Then Return
 
-	Local $PCSizes[7] = [7,4,1,5,2,6,3]
 	Local $Comment
-
-	$PCLeftover = $PCSizes[$Leftover-1]
-	Switch $Leftover
+    
+    $PCBagNum = $BagNum ;push to global
+    $EffectivePCNum = Mod($BagNum-1,7)+1
+	Local $PCLeftover = PiecesLeftover($EffectivePCNum)
+	Switch $EffectivePCNum
 		Case 1
-			$Comment = '1st'
+			$CommentOrdinal = 'st'
 		Case 2
-			$Comment = '2nd'
+			$CommentOrdinal = 'nd'
 		Case 3
-			$Comment = '3rd'
+			$CommentOrdinal = 'rd'
 		Case Else
-			$Comment = $Leftover&'th.'
+			$CommentOrdinal = 'th'
 	EndSwitch
 
-	DrawComment(0, 1000, $Comment&' PC', 'Bag leftover: '&$PCLeftover&' piece' & (($PCLeftover = 1)?'.':'s.'))
-	clear_board()
+	DrawComment(0, 1000, (($BagNum <= 7)?'':'Dupe ') & $EffectivePCNum &$CommentOrdinal&' PC', 'Bag leftover: '&$PCLeftover&' piece' & (($PCLeftover <> 1)?'s':'') & '.')
+	clear_board() ;implicitly calls PCSetBag
 EndFunc
-Func PCSetBag($Leftover)
-	Local $Fill
-
-	Do
-		$Fill = __MemCopy($BagPieces)
-		For $i = 0 To UBound($Fill) - 1
-			__Swap($Fill[$i], $Fill[Random($i, UBound($Fill) - 1, 1)])
-		Next
-		ReDim $Fill[$Leftover]
-	Until Not PCRerollBag($Fill)
-
+Func PCShufflePieces($Bag, $PieceCount)
+    Do
+        $TempBag = __MemCopy($Bag)
+        Local $Fill[$PieceCount]
+        For $i = 0 To $PieceCount - 1
+            $index = Random(0, UBound($TempBag) - 1,1)
+            $Fill[$i] = $TempBag[$index]
+            _ArrayDelete($TempBag, $index)
+        Next
+    Until Not PCRerollBag($Fill)
+    return $Fill
+EndFunc
+Func PCSetBag()
+	Local $Fill[1] ;a bit clumsy, forcing this as 1, but eh
+    
+    $Fill = PCShufflePieces($BagPieces, PiecesLeftover($PCBagNum))
+    If ($PCBagNum >= 8) Then ;8th and up, remove one, dupe one
+        $Fill = PCShufflePieces($BagPieces, PiecesLeftover($PCBagNum))
+        $Fill[0] = $Fill[Random(0+1, UBound($Fill) - 1,1)]
+    EndIf
+    
 	$Bag = $Fill
 	$CHG = True
 
@@ -3188,7 +3237,7 @@ Func clear_board()
 			GridSpawn4W()
 		Case $GM_MASTER		;master mode
 		Case $GM_PC			;pc training
-			PCSetBag($PCLeftover)
+			PCSetBag()
 	EndSwitch
 EndFunc   ;==>clear_board
 Func lose_game()
