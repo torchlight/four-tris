@@ -269,8 +269,8 @@ SoundSetWaveVolume($VOLUME)
 #Region KEYBINDS
 ;key-code, action to perform, key pressed?, time of the last press/release, raising edge?
 Global Enum $KEYCODE, $KEYACTION, $KEYSTATE, $KEYTIME, $KEYEDGE
-Global		$KEYBINDS[23][5]
-Global		$HOTKEYS [ 6][2]
+Global		$KEYBINDS[21][5]
+Global		$HOTKEYS [13][2]
 
 ;edge
 $KEYBINDS[0 ][4] = 0
@@ -296,8 +296,6 @@ $KEYBINDS[17][4] = 1
 $KEYBINDS[18][4] = 1
 $KEYBINDS[19][4] = 1
 $KEYBINDS[20][4] = 1
-$KEYBINDS[21][4] = 1
-$KEYBINDS[22][4] = 1
 
 ;functions
 $KEYBINDS[0 ][1] = 'MoveL()'
@@ -316,15 +314,13 @@ $KEYBINDS[11][1] = 'GridSpawn4W()'
 $KEYBINDS[12][1] = 'HighlightReset()'
 $KEYBINDS[13][1] = 'HighlightModeToggle()'
 
-$KEYBINDS[14][1] = 'PCSetLeftover(1)'
-$KEYBINDS[15][1] = 'PCSetLeftover(2)'
-$KEYBINDS[16][1] = 'PCSetLeftover(3)'
-$KEYBINDS[17][1] = 'PCSetLeftover(4)'
-$KEYBINDS[18][1] = 'PCSetLeftover(5)'
-$KEYBINDS[19][1] = 'PCSetLeftover(6)'
-$KEYBINDS[20][1] = 'PCSetLeftover(7)'
-$KEYBINDS[21][1] = 'PCSetLeftover(8)'
-$KEYBINDS[22][1] = 'PCSetLeftover(9)'
+$KEYBINDS[14][1] = 'PCSetBagNum(1)'
+$KEYBINDS[15][1] = 'PCSetBagNum(2)'
+$KEYBINDS[16][1] = 'PCSetBagNum(3)'
+$KEYBINDS[17][1] = 'PCSetBagNum(4)'
+$KEYBINDS[18][1] = 'PCSetBagNum(5)'
+$KEYBINDS[19][1] = 'PCSetBagNum(6)'
+$KEYBINDS[20][1] = 'PCSetBagNum(7)'
 
 $HOTKEYS [0 ][1] = 'Undo'
 $HOTKEYS [1 ][1] = 'Redo'
@@ -332,6 +328,13 @@ $HOTKEYS [2 ][1] = 'Redo'
 $HOTKEYS [3 ][1] = 'Copy'
 $HOTKEYS [4 ][1] = 'Paste'
 $HOTKEYS [5 ][1] = 'BagSet'
+$HOTKEYS [6 ][1] = 'PCSetBagNumDupe1'
+$HOTKEYS [7 ][1] = 'PCSetBagNumDupe2'
+$HOTKEYS [8 ][1] = 'PCSetBagNumDupe3'
+$HOTKEYS [9 ][1] = 'PCSetBagNumDupe4'
+$HOTKEYS [10][1] = 'PCSetBagNumDupe5'
+$HOTKEYS [11][1] = 'PCSetBagNumDupe6'
+$HOTKEYS [12][1] = 'PCSetBagNumDupe7'
 
 ;keybind
 $KEYBINDS[0 ][0] = Number(IniRead('settings.ini', 'SETTINGS', 'KB0',  37)) ;LEFT
@@ -357,8 +360,6 @@ $KEYBINDS[17][0] = 52 ;4
 $KEYBINDS[18][0] = 53 ;5
 $KEYBINDS[19][0] = 54 ;6
 $KEYBINDS[20][0] = 55 ;7
-$KEYBINDS[21][0] = 56 ;8
-$KEYBINDS[22][0] = 57 ;9
 
 $HOTKEYS [0 ][0] = '^z'
 $HOTKEYS [1 ][0] = '^+z'
@@ -366,6 +367,13 @@ $HOTKEYS [2 ][0] = '^y'
 $HOTKEYS [3 ][0] = '^c'
 $HOTKEYS [4 ][0] = '^v'
 $HOTKEYS [5 ][0] = '^q'
+$HOTKEYS [6 ][0] = '^1'
+$HOTKEYS [7 ][0] = '^2'
+$HOTKEYS [8 ][0] = '^3'
+$HOTKEYS [9 ][0] = '^4'
+$HOTKEYS [10][0] = '^5'
+$HOTKEYS [11][0] = '^6'
+$HOTKEYS [12][0] = '^7'
 
 Global $KEYACTIVE = False
 
@@ -1189,7 +1197,7 @@ Func SetMode($Mode)
 			$BUTTONTEXT[$MODEBUTTON] = ' MASTER   MODE  '
 			$Gravity = 1000
 		Case $GM_PC ;perfect-clear mode
-			DrawComment(0, 1750, 'PC MODE', 'Use KEYS 1-9 to set the Nth. PC.')
+			DrawComment(0, 1750, 'PC MODE', 'KEYS 1-7 for Nth. PC, +CTRL for dupes.') ;still too long with ellipsis
 			$BUTTONTEXT[$MODEBUTTON] = '   PC     MODE  '
 			$Gravity = 0
 	EndSwitch
@@ -2172,7 +2180,7 @@ Func StateDecode($Data)
 	$PieceH  = $QueueData[1]
 	$Bag     = $QueueData[2]
 	$GRID    = $BoardData
-	DrawComment(0, 2000, $Title, $Comment)
+	DrawComment(100, 2000, $Title, $Comment)
 	$CHG = True
 
 	Return True
@@ -2787,14 +2795,37 @@ EndFunc
 Func PiecesLeftover($BagNum)
     Return Mod(66-1 - 3*$BagNum, 7)+1 ;to make 1st bag return 7
 EndFunc
-Func PCSetLeftover($BagNum) 
+Func PCSetBagNumDupe1() ;you can't have functions with parameters for hotkeys :(
+    SetHotkeys(1)
+    PCSetBagNum(7+1)
+EndFunc
+Func PCSetBagNumDupe2()
+    PCSetBagNum(7+2)
+EndFunc
+Func PCSetBagNumDupe3() ;technically does not exist
+    PCSetBagNum(7+3)
+EndFunc
+Func PCSetBagNumDupe4()
+    PCSetBagNum(7+4)
+EndFunc
+Func PCSetBagNumDupe5()
+    PCSetBagNum(7+5)
+EndFunc
+Func PCSetBagNumDupe6()
+    PCSetBagNum(7+6)
+EndFunc
+Func PCSetBagNumDupe7()
+    PCSetBagNum(7+7)
+EndFunc
+Func PCSetBagNum($BagNum) 
 	If $GAMEMODE <> $GM_PC Then Return
 
 	Local $Comment
     
     $PCBagNum = $BagNum ;push to global
-	Local $PCLeftover = PiecesLeftover($BagNum)
-	Switch $PCBagNum
+    $EffectivePCNum = Mod($BagNum-1,7)+1
+	Local $PCLeftover = PiecesLeftover($EffectivePCNum)
+	Switch $EffectivePCNum
 		Case 1
 			$CommentOrdinal = 'st'
 		Case 2
@@ -2805,7 +2836,7 @@ Func PCSetLeftover($BagNum)
 			$CommentOrdinal = 'th'
 	EndSwitch
 
-	DrawComment(0, 1000, $PCBagNum&$CommentOrdinal&' PC', 'Bag leftover: '&$PCLeftover&' piece' & (($PCLeftover <> 1)?'s':'') & '.')
+	DrawComment(0, 1000, (($BagNum <= 7)?'':'Dupe ') & $EffectivePCNum &$CommentOrdinal&' PC', 'Bag leftover: '&$PCLeftover&' piece' & (($PCLeftover <> 1)?'s':'') & '.')
 	clear_board() ;implicitly calls PCSetBag
 EndFunc
 Func PCShufflePieces($Bag, $PieceCount)
@@ -2823,23 +2854,10 @@ EndFunc
 Func PCSetBag()
 	Local $Fill[1] ;a bit clumsy, forcing this as 1, but eh
     
-    If ($PCBagNum <= 7) Then ;handle normal
+    $Fill = PCShufflePieces($BagPieces, PiecesLeftover($PCBagNum))
+    If ($PCBagNum >= 8) Then ;8th and up, remove one, dupe one
         $Fill = PCShufflePieces($BagPieces, PiecesLeftover($PCBagNum))
-    ElseIf ($PCBagNum = 8) Then ;8th, remove one, duplicate one
-        Local $ExcludeBag = __MemCopy($Bag)
-        $index = Random(0, UBound($BagPieces) - 1,1)
-        _ArrayDelete($ExcludeBag, $index)
-        ;_ArrayDisplay($ExcludeBag)
-        $Fill[0] = $ExcludeBag[Random(0, UBound($ExcludeBag) - 1,1)]
-        ;_ArrayDisplay($Fill)
-        _ArrayConcatenate($Fill, PCShufflePieces($ExcludeBag, PiecesLeftover($PCBagNum)-1))
-        ;_ArrayDisplay($Fill)
-    ElseIf ($PCBagNum = 9) Then ;9th, T, T, [JL]p1, [IOSZ]p1
-        Local $PartJL = [1,5]
-        Local $PartISOZ = [0,2,3,4]
-        Local $PartNewBag = [6, $PartISOZ[Random(0, UBound($PartISOZ) - 1,1)], $PartJL[Random(0, UBound($PartJL) - 1,1)]]
-        $Fill[0] = 6
-        _ArrayConcatenate($Fill, PCShufflePieces($PartNewBag, 3))
+        $Fill[0] = $Fill[Random(0+1, UBound($Fill) - 1,1)]
     EndIf
     
 	$Bag = $Fill
