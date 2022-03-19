@@ -2180,7 +2180,7 @@ Func StateDecode($Data)
 	$PieceH  = $QueueData[1]
 	$Bag     = $QueueData[2]
 	$GRID    = $BoardData
-	DrawComment(100, 2000, $Title, $Comment)
+	DrawComment(0, 2000, $Title, $Comment)
 	$CHG = True
 
 	Return True
