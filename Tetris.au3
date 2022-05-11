@@ -393,9 +393,9 @@ $BUTTONS[$MODEBUTTON][2] = BoundBox($AlignL, $AlignB -  80, 75, 35)
 $BUTTONS[$SETTBUTTON][2] = BoundBox($AlignL, $AlignB -  40, 75, 35)
 
 ;special buttons
-$BUTTONS[$HOLDBUTTON][2] = BoundBox($AlignL,      $AlignT + 150,  75,  80)
-$BUTTONS[$HOLDDELETE][2] = BoundBox($AlignL + 50, $AlignT + 155,  20,  20)
-$BUTTONS[$HOLDCHECK ][2] = BoundBox($AlignL,      $AlignT + 232,  75,  18)
+$BUTTONS[$HOLDBUTTON][2] = BoundBox($AlignL,      $AlignT + 200,  75,  80)
+$BUTTONS[$HOLDDELETE][2] = BoundBox($AlignL + 50, $AlignT + 205,  20,  20)
+$BUTTONS[$HOLDCHECK ][2] = BoundBox($AlignL,      $AlignT + 282,  75,  18)
 $BUTTONS[$NEXTBUTTON][2] = BoundBox($AlignR,      $AlignT,        75, 240)
 $BUTTONS[$SHUFBUTTON][2] = BoundBox($AlignR + 50, $AlignT +   5,  20,  20)
 $BUTTONS[$UNDOBUTTON][2] = BoundBox($AlignR,      $AlignT + 250,  35,  35)
@@ -1674,22 +1674,22 @@ Func DrawScore($DRW)
 
 	$X = $AlignL
 
-	_WinAPI_FillRect($DRW, Rect($X, 10, 75, 140), $Brush[$CBOX])
+	_WinAPI_FillRect($DRW, Rect($X, 10, 75, 190), $Brush[$CBOX])
 	_WinAPI_SetTextColor($DRW, $Color[$CTXT])
 
 	$X += 2
 	_WinAPI_DrawText($DRW, 'CLEAR',  Rect($X + 10,  15, 55, 15), $DT_LEFT)
-	_WinAPI_DrawText($DRW, 'ATTACK', Rect($X + 10,  40, 55, 15), $DT_LEFT)
-	_WinAPI_DrawText($DRW, 'PIECES', Rect($X + 10,  65, 55, 15), $DT_LEFT)
-	_WinAPI_DrawText($DRW, 'APP',    Rect($X + 10, 90, 55, 15), $DT_LEFT)
-	_WinAPI_DrawText($DRW, 'SCORE',    Rect($X + 10, 115, 55, 15), $DT_LEFT)
-	_WinAPI_DrawText($DRW, 'PPB',    Rect($X + 10, 140, 55, 15), $DT_LEFT)
+	_WinAPI_DrawText($DRW, 'ATTACK', Rect($X + 10,  45, 55, 15), $DT_LEFT)
+	_WinAPI_DrawText($DRW, 'PIECES', Rect($X + 10,  75, 55, 15), $DT_LEFT)
+	_WinAPI_DrawText($DRW, 'APP',    Rect($X + 10, 105, 55, 15), $DT_LEFT)
+	_WinAPI_DrawText($DRW, 'SCORE',    Rect($X + 10, 135, 55, 15), $DT_LEFT)
+	_WinAPI_DrawText($DRW, 'PPB',    Rect($X + 10, 165, 55, 15), $DT_LEFT)
 	_WinAPI_DrawText($DRW, StringRight('000000' & $Lines,  6), Rect($X + 17,  27, 55, 20), $DT_LEFT)
-	_WinAPI_DrawText($DRW, StringRight('000000' & $Damage, 6), Rect($X + 17,  52, 55, 20), $DT_LEFT)
-	_WinAPI_DrawText($DRW, StringRight('000000' & $Moves,  6), Rect($X + 17,  77, 55, 20), $DT_LEFT)
-	_WinAPI_DrawText($DRW, StringRight('0.00000' & $APP,    6), Rect($X + 17, 102, 55, 20), $DT_LEFT)
-	_WinAPI_DrawText($DRW, StringRight('0000000' & $Score,    7), Rect($X + 10, 127, 55, 20), $DT_LEFT)
-	_WinAPI_DrawText($DRW, StringRight('000.00' & $PPB,    6), Rect($X + 17, 152, 55, 20), $DT_LEFT)
+	_WinAPI_DrawText($DRW, StringRight('000000' & $Damage, 6), Rect($X + 17,  57, 55, 20), $DT_LEFT)
+	_WinAPI_DrawText($DRW, StringRight('000000' & $Moves,  6), Rect($X + 17,  87, 55, 20), $DT_LEFT)
+	_WinAPI_DrawText($DRW, StringRight('0.00000' & $APP,    6), Rect($X + 17, 117, 55, 20), $DT_LEFT)
+	_WinAPI_DrawText($DRW, StringRight('0000000' & $Score,    7), Rect($X + 10, 147, 55, 20), $DT_LEFT)
+	_WinAPI_DrawText($DRW, StringRight('000.00' & $PPB,    6), Rect($X + 17, 177, 55, 20), $DT_LEFT)
 EndFunc   ;==>DrawScore
 Func DrawButtons($DRW)
 	Local $B, $X
@@ -1812,7 +1812,7 @@ Func DrawAttack($DRW)
 	If $AttackText = '' Then Return
 
 	Local $X = 10
-	Local $Y = 310
+	Local $Y = 360
 	Local $Text[2] = [StringStripWS(StringLeft($AttackText, 6),7), _
 					  StringStripWS(StringTrimLeft($AttackText, 6),7)]
 
@@ -1825,7 +1825,7 @@ Func DrawCombo($DRW)
 	If $ClearCombo < 2 Then Return
 
 	Local $X = 10
-	Local $Y = 260
+	Local $Y = 310
 
 	_WinAPI_SelectObject($DRW, $Font20)
 	_WinAPI_DrawText($DRW, 'x' & $ClearCombo - 1, Rect($X,$Y+10,75,30), $DT_CENTER)
