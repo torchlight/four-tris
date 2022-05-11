@@ -130,6 +130,7 @@ Global $Stickyness = 0
 Global $PCLeftover = 7
 
 Global $Damage	= 0 ;damage sent
+Global $Score = 0 ;points gained
 Global $Lines	= 0 ;lines cleared
 Global $Moves   = 0 ;pieces used
 Global $Lost	= False ;game has ended
@@ -1665,7 +1666,9 @@ Func DrawScore($DRW)
 	Local $X
 	Local $M = ($Moves > 0) ? $Moves : 1
 	Local $APP = StringLeft(Round($Damage / $M, 4) + 1e-8, 6)
-	If $APP < 1e-6 Then $APP = 0
+	If $APP < 1e-6 Then $APP = '0.0000'
+	Local $PPB = StringLeft(Round($Score / $M, 2) + 1e-8, 6)
+	If $PPB < 1e-6 THEN $PPB = '000.00'
 
 	$X = $AlignL
 
@@ -1673,14 +1676,18 @@ Func DrawScore($DRW)
 	_WinAPI_SetTextColor($DRW, $Color[$CTXT])
 
 	$X += 2
-	_WinAPI_DrawText($DRW, 'CLEAR',  Rect($X + 10,  20, 55, 15), $DT_LEFT)
-	_WinAPI_DrawText($DRW, 'ATTACK', Rect($X + 10,  50, 55, 15), $DT_LEFT)
-	_WinAPI_DrawText($DRW, 'PIECES', Rect($X + 10,  80, 55, 15), $DT_LEFT)
-	_WinAPI_DrawText($DRW, 'APP',    Rect($X + 10, 110, 55, 15), $DT_LEFT)
-	_WinAPI_DrawText($DRW, StringRight('000000' & $Lines,  6), Rect($X + 10,  32, 55, 20), $DT_LEFT)
-	_WinAPI_DrawText($DRW, StringRight('000000' & $Damage, 6), Rect($X + 10,  62, 55, 20), $DT_LEFT)
-	_WinAPI_DrawText($DRW, StringRight('000000' & $Moves,  6), Rect($X + 10,  92, 55, 20), $DT_LEFT)
-	_WinAPI_DrawText($DRW, StringRight('000000' & $APP,    6), Rect($X + 10, 122, 55, 20), $DT_LEFT)
+	_WinAPI_DrawText($DRW, 'CLEAR',  Rect($X + 10,  15, 55, 15), $DT_LEFT)
+	_WinAPI_DrawText($DRW, 'ATTACK', Rect($X + 10,  40, 55, 15), $DT_LEFT)
+	_WinAPI_DrawText($DRW, 'PIECES', Rect($X + 10,  65, 55, 15), $DT_LEFT)
+	_WinAPI_DrawText($DRW, 'APP',    Rect($X + 10, 90, 55, 15), $DT_LEFT)
+	_WinAPI_DrawText($DRW, 'SCORE',    Rect($X + 10, 115, 55, 15), $DT_LEFT)
+	_WinAPI_DrawText($DRW, 'PPB',    Rect($X + 10, 140, 55, 15), $DT_LEFT)
+	_WinAPI_DrawText($DRW, StringRight('000000' & $Lines,  6), Rect($X + 17,  27, 55, 20), $DT_LEFT)
+	_WinAPI_DrawText($DRW, StringRight('000000' & $Damage, 6), Rect($X + 17,  52, 55, 20), $DT_LEFT)
+	_WinAPI_DrawText($DRW, StringRight('000000' & $Moves,  6), Rect($X + 17,  77, 55, 20), $DT_LEFT)
+	_WinAPI_DrawText($DRW, StringRight('0.00000' & $APP,    6), Rect($X + 17, 102, 55, 20), $DT_LEFT)
+	_WinAPI_DrawText($DRW, StringRight('0000000' & $Score,    7), Rect($X + 10, 127, 55, 20), $DT_LEFT)
+	_WinAPI_DrawText($DRW, StringRight('000.00' & $PPB,    6), Rect($X + 17, 152, 55, 20), $DT_LEFT)
 EndFunc   ;==>DrawScore
 Func DrawButtons($DRW)
 	Local $B, $X
@@ -2089,7 +2096,7 @@ EndFunc
 
 
 Func SaveState()
-	Local $SaveState[10]
+	Local $SaveState[11]
 
 	$SaveState[0] = $Damage
 	$SaveState[1] = $Lines
@@ -2101,6 +2108,7 @@ Func SaveState()
 	$SaveState[7] = $BagSeed
 	$SaveState[8] = __MemCopy($GRID)
 	$SaveState[9] = __MemCopy($Bag)
+	$SaveState[10] = $Score
 
 	Return $SaveState
 EndFunc
@@ -2118,6 +2126,7 @@ Func LoadState($SaveState)
 	$BagSeed    = $SaveState[7]
 	$GRID 		= __MemCopy($SaveState[8])
 	$Bag		= __MemCopy($SaveState[9])
+	$Score = $SaveState[10]
 	PieceReset()
 
 	$CHG		= True
@@ -2949,6 +2958,7 @@ EndFunc   ;==>PieceHold
 
 Func StatsReset()
 	$Damage  = 0
+	$Score = 0
 	$Lines   = 0
 	$Moves   = 0
 	$BtB     = False
@@ -3275,19 +3285,27 @@ Func CheckLines()
 	$Perfect = $FullClear
 	$Lines  += $LineClear
 	$Damage += 10 * $Perfect
+	$Score += 3000 * $Perfect
 	Switch $LineClear
 		Case 0
 			$ClearCombo = 0
+			$Score += $tSpin ? ($sMini ? 100 : 400) : 0
 
 		Case 1,2,3
 			$ClearCombo += 1
 			$Damage += $tSpin ? $LineClear * 2 : $LineClear - 1
 			$Damage -= $sMini ? 2 : 0
+			If $LineClear = 1 And $sMini Then
+				$Score += $BtB ? 300 : 200
+			Else
+				$Score += $tSpin ? ($LineClear + 1) * ($BtB ? 600 : 400) : $LineClear * 200 - 100
+			EndIf			
 
 			Sound($tSpin ? ($BtB ? 'btb' : 'tspin') : 'clear')
 		Case 4
 			$ClearCombo += 1
 			$Damage += 4
+			$Score += $BtB ? 1200 : 800
 
 			Sound($BtB ? 'btb' : 'tetris')
 	EndSwitch
@@ -3298,6 +3316,7 @@ Func CheckLines()
 	$Damage += $ClearCombo > 6
 	$Damage += $ClearCombo > 8
 	$Damage += $ClearCombo > 11
+	$Score += $ClearCombo ? $ClearCombo * 50 - 50 : 0
 
 	$B2BText    = ''
 	$AttackText = ''
