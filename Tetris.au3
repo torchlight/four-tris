@@ -272,7 +272,7 @@ SoundSetWaveVolume($VOLUME)
 ;key-code, action to perform, key pressed?, time of the last press/release, raising edge?
 Global Enum $KEYCODE, $KEYACTION, $KEYSTATE, $KEYTIME, $KEYEDGE
 Global		$KEYBINDS[21][5]
-Global		$HOTKEYS [ 6][2]
+Global		$HOTKEYS [ 7][2]
 
 ;edge
 $KEYBINDS[0 ][4] = 0
@@ -330,6 +330,7 @@ $HOTKEYS [2 ][1] = 'Redo'
 $HOTKEYS [3 ][1] = 'Copy'
 $HOTKEYS [4 ][1] = 'Paste'
 $HOTKEYS [5 ][1] = 'BagSet'
+$HOTKEYS [6 ][1] = 'HoldSet'
 
 ;keybind
 $KEYBINDS[0 ][0] = Number(IniRead('settings.ini', 'SETTINGS', 'KB0',  37)) ;LEFT
@@ -362,6 +363,7 @@ $HOTKEYS [2 ][0] = '^y'
 $HOTKEYS [3 ][0] = '^c'
 $HOTKEYS [4 ][0] = '^v'
 $HOTKEYS [5 ][0] = '^q'
+$HOTKEYS [6 ][0] = '^h'
 
 Global $KEYACTIVE = False
 
