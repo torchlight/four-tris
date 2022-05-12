@@ -130,6 +130,7 @@ Global $Stickyness = 0
 Global $PCLeftover = 7
 
 Global $Damage	= 0 ;damage sent
+Global $Score = 0 ;points gained
 Global $Lines	= 0 ;lines cleared
 Global $Moves   = 0 ;pieces used
 Global $Lost	= False ;game has ended
@@ -271,7 +272,7 @@ SoundSetWaveVolume($VOLUME)
 ;key-code, action to perform, key pressed?, time of the last press/release, raising edge?
 Global Enum $KEYCODE, $KEYACTION, $KEYSTATE, $KEYTIME, $KEYEDGE
 Global		$KEYBINDS[21][5]
-Global		$HOTKEYS [ 6][2]
+Global		$HOTKEYS [ 7][2]
 
 ;edge
 $KEYBINDS[0 ][4] = 0
@@ -329,6 +330,7 @@ $HOTKEYS [2 ][1] = 'Redo'
 $HOTKEYS [3 ][1] = 'Copy'
 $HOTKEYS [4 ][1] = 'Paste'
 $HOTKEYS [5 ][1] = 'BagSet'
+$HOTKEYS [6 ][1] = 'HoldSet'
 
 ;keybind
 $KEYBINDS[0 ][0] = Number(IniRead('settings.ini', 'SETTINGS', 'KB0',  37)) ;LEFT
@@ -361,6 +363,7 @@ $HOTKEYS [2 ][0] = '^y'
 $HOTKEYS [3 ][0] = '^c'
 $HOTKEYS [4 ][0] = '^v'
 $HOTKEYS [5 ][0] = '^q'
+$HOTKEYS [6 ][0] = '^h'
 
 Global $KEYACTIVE = False
 
@@ -390,9 +393,9 @@ $BUTTONS[$MODEBUTTON][2] = BoundBox($AlignL, $AlignB -  80, 75, 35)
 $BUTTONS[$SETTBUTTON][2] = BoundBox($AlignL, $AlignB -  40, 75, 35)
 
 ;special buttons
-$BUTTONS[$HOLDBUTTON][2] = BoundBox($AlignL,      $AlignT + 150,  75,  80)
-$BUTTONS[$HOLDDELETE][2] = BoundBox($AlignL + 50, $AlignT + 155,  20,  20)
-$BUTTONS[$HOLDCHECK ][2] = BoundBox($AlignL,      $AlignT + 232,  75,  18)
+$BUTTONS[$HOLDBUTTON][2] = BoundBox($AlignL,      $AlignT + 200,  75,  80)
+$BUTTONS[$HOLDDELETE][2] = BoundBox($AlignL + 50, $AlignT + 205,  20,  20)
+$BUTTONS[$HOLDCHECK ][2] = BoundBox($AlignL,      $AlignT + 282,  75,  18)
 $BUTTONS[$NEXTBUTTON][2] = BoundBox($AlignR,      $AlignT,        75, 240)
 $BUTTONS[$SHUFBUTTON][2] = BoundBox($AlignR + 50, $AlignT +   5,  20,  20)
 $BUTTONS[$UNDOBUTTON][2] = BoundBox($AlignR,      $AlignT + 250,  35,  35)
@@ -1665,22 +1668,28 @@ Func DrawScore($DRW)
 	Local $X
 	Local $M = ($Moves > 0) ? $Moves : 1
 	Local $APP = StringLeft(Round($Damage / $M, 4) + 1e-8, 6)
-	If $APP < 1e-6 Then $APP = 0
+	If $APP < 1e-6 Then $APP = '0.0000'
+	Local $PPB = StringLeft(Round($Score / $M, 2) + 1e-8, 6)
+	If $PPB < 1e-6 THEN $PPB = '000.00'
 
 	$X = $AlignL
 
-	_WinAPI_FillRect($DRW, Rect($X, 10, 75, 140), $Brush[$CBOX])
+	_WinAPI_FillRect($DRW, Rect($X, 10, 75, 190), $Brush[$CBOX])
 	_WinAPI_SetTextColor($DRW, $Color[$CTXT])
 
 	$X += 2
-	_WinAPI_DrawText($DRW, 'CLEAR',  Rect($X + 10,  20, 55, 15), $DT_LEFT)
-	_WinAPI_DrawText($DRW, 'ATTACK', Rect($X + 10,  50, 55, 15), $DT_LEFT)
-	_WinAPI_DrawText($DRW, 'PIECES', Rect($X + 10,  80, 55, 15), $DT_LEFT)
-	_WinAPI_DrawText($DRW, 'APP',    Rect($X + 10, 110, 55, 15), $DT_LEFT)
-	_WinAPI_DrawText($DRW, StringRight('000000' & $Lines,  6), Rect($X + 10,  32, 55, 20), $DT_LEFT)
-	_WinAPI_DrawText($DRW, StringRight('000000' & $Damage, 6), Rect($X + 10,  62, 55, 20), $DT_LEFT)
-	_WinAPI_DrawText($DRW, StringRight('000000' & $Moves,  6), Rect($X + 10,  92, 55, 20), $DT_LEFT)
-	_WinAPI_DrawText($DRW, StringRight('000000' & $APP,    6), Rect($X + 10, 122, 55, 20), $DT_LEFT)
+	_WinAPI_DrawText($DRW, 'CLEAR',  Rect($X + 10,  15, 55, 15), $DT_LEFT)
+	_WinAPI_DrawText($DRW, 'ATTACK', Rect($X + 10,  45, 55, 15), $DT_LEFT)
+	_WinAPI_DrawText($DRW, 'PIECES', Rect($X + 10,  75, 55, 15), $DT_LEFT)
+	_WinAPI_DrawText($DRW, 'APP',    Rect($X + 10, 105, 55, 15), $DT_LEFT)
+	_WinAPI_DrawText($DRW, 'SCORE',    Rect($X + 10, 135, 55, 15), $DT_LEFT)
+	_WinAPI_DrawText($DRW, 'PPB',    Rect($X + 10, 165, 55, 15), $DT_LEFT)
+	_WinAPI_DrawText($DRW, StringRight('000000' & $Lines,  6), Rect($X + 17,  27, 55, 20), $DT_LEFT)
+	_WinAPI_DrawText($DRW, StringRight('000000' & $Damage, 6), Rect($X + 17,  57, 55, 20), $DT_LEFT)
+	_WinAPI_DrawText($DRW, StringRight('000000' & $Moves,  6), Rect($X + 17,  87, 55, 20), $DT_LEFT)
+	_WinAPI_DrawText($DRW, StringRight('0.00000' & $APP,    6), Rect($X + 17, 117, 55, 20), $DT_LEFT)
+	_WinAPI_DrawText($DRW, StringRight('0000000' & $Score,    7), Rect($X + 10, 147, 55, 20), $DT_LEFT)
+	_WinAPI_DrawText($DRW, StringRight('000.00' & $PPB,    6), Rect($X + 17, 177, 55, 20), $DT_LEFT)
 EndFunc   ;==>DrawScore
 Func DrawButtons($DRW)
 	Local $B, $X
@@ -1803,7 +1812,7 @@ Func DrawAttack($DRW)
 	If $AttackText = '' Then Return
 
 	Local $X = 10
-	Local $Y = 310
+	Local $Y = 360
 	Local $Text[2] = [StringStripWS(StringLeft($AttackText, 6),7), _
 					  StringStripWS(StringTrimLeft($AttackText, 6),7)]
 
@@ -1816,7 +1825,7 @@ Func DrawCombo($DRW)
 	If $ClearCombo < 2 Then Return
 
 	Local $X = 10
-	Local $Y = 260
+	Local $Y = 310
 
 	_WinAPI_SelectObject($DRW, $Font20)
 	_WinAPI_DrawText($DRW, 'x' & $ClearCombo - 1, Rect($X,$Y+10,75,30), $DT_CENTER)
@@ -2089,7 +2098,7 @@ EndFunc
 
 
 Func SaveState()
-	Local $SaveState[10]
+	Local $SaveState[11]
 
 	$SaveState[0] = $Damage
 	$SaveState[1] = $Lines
@@ -2101,6 +2110,7 @@ Func SaveState()
 	$SaveState[7] = $BagSeed
 	$SaveState[8] = __MemCopy($GRID)
 	$SaveState[9] = __MemCopy($Bag)
+	$SaveState[10] = $Score
 
 	Return $SaveState
 EndFunc
@@ -2118,6 +2128,7 @@ Func LoadState($SaveState)
 	$BagSeed    = $SaveState[7]
 	$GRID 		= __MemCopy($SaveState[8])
 	$Bag		= __MemCopy($SaveState[9])
+	$Score = $SaveState[10]
 	PieceReset()
 
 	$CHG		= True
@@ -2949,6 +2960,7 @@ EndFunc   ;==>PieceHold
 
 Func StatsReset()
 	$Damage  = 0
+	$Score = 0
 	$Lines   = 0
 	$Moves   = 0
 	$BtB     = False
@@ -3275,19 +3287,27 @@ Func CheckLines()
 	$Perfect = $FullClear
 	$Lines  += $LineClear
 	$Damage += 10 * $Perfect
+	$Score += 3000 * $Perfect
 	Switch $LineClear
 		Case 0
 			$ClearCombo = 0
+			$Score += $tSpin ? ($sMini ? 100 : 400) : 0
 
 		Case 1,2,3
 			$ClearCombo += 1
 			$Damage += $tSpin ? $LineClear * 2 : $LineClear - 1
 			$Damage -= $sMini ? 2 : 0
+			If $LineClear = 1 And $sMini Then
+				$Score += $BtB ? 300 : 200
+			Else
+				$Score += $tSpin ? ($LineClear + 1) * ($BtB ? 600 : 400) : $LineClear * 200 - 100
+			EndIf			
 
 			Sound($tSpin ? ($BtB ? 'btb' : 'tspin') : 'clear')
 		Case 4
 			$ClearCombo += 1
 			$Damage += 4
+			$Score += $BtB ? 1200 : 800
 
 			Sound($BtB ? 'btb' : 'tetris')
 	EndSwitch
@@ -3298,6 +3318,7 @@ Func CheckLines()
 	$Damage += $ClearCombo > 6
 	$Damage += $ClearCombo > 8
 	$Damage += $ClearCombo > 11
+	$Score += $ClearCombo ? $ClearCombo * 50 - 50 : 0
 
 	$B2BText    = ''
 	$AttackText = ''
